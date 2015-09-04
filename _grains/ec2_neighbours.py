@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 import boto.ec2
 import boto.utils
