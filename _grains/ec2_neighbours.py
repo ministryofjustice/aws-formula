@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 import boto.ec2
 import boto.utils
@@ -16,7 +17,7 @@ def set_grain_instances_by_vpc():
         return {'custom_grain_error': True}
     
     # Setup the aws grain
-    aws_grain = {'aws':{'ec2':{}}}
+    aws_grain = {'aws':{'ec2':{'neighbours':{}}}}
     
     # Collect details about this instance
     current_ip = instance_metadata['local-ipv4']
@@ -27,13 +28,18 @@ def set_grain_instances_by_vpc():
     # Add this instances details to the grain
     aws_grain['aws']['ec2']['local_private_ip_address'] = current_ip
     aws_grain['aws']['ec2']['local_private_dns_name'] = current_dns_name
+    aws_grain['aws']['ec2']['local_private_dns_name_safe'] = current_dns_name.split('.')[0].replace('.','-')
     
     # Collect neighbours of this instance (in the same vpc)
     try:
         ec2_conn = boto.ec2.connect_to_region(region)
         all_vpc_instances = ec2_conn.get_only_instances(filters={'vpc_id':vpc_id, 'instance-state-name': 'running'})
         vpc_instances = [i for i in all_vpc_instances if i.vpc_id == vpc_id and i.private_ip_address != current_ip ]
-        aws_grain['aws']['ec2']['neighbours'] = current_ip = {str(i.private_ip_address): str(i.private_dns_name) for i in vpc_instances}
+        for i in vpc_instances:
+            aws_grain['aws']['ec2']['neighbours'][str(i.private_ip_address)] = {
+                'private_dns_name': str(i.private_dns_name),
+                'private_dns_name_safe': str(i.private_dns_name).split('.')[0].replace('.','-')
+            }
     except Exception as e:
       sys.stderr.write("Error getting VPC ips: {}".format(e))
       return {'custom_grain_error': True}
