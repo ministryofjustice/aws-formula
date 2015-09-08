@@ -54,12 +54,14 @@ def ext_pillar(minion_id,
 def _get_ec2_local():
 	instance_metadata = boto.utils.get_instance_metadata(timeout=5, num_retries=2)
     # Collect details about this instance
-	current_ip = instance_metadata['local-ipv4']
-	current_dns_name = instance_metadata['local-hostname']
-	vpc_id = instance_metadata['network']['interfaces']['macs'].values()[0]['vpc-id']
-	region = instance_metadata['placement']['availability-zone'][:-1]
+	current_ip = str(instance_metadata['local-ipv4'])
+	current_dns_name = str(instance_metadata['local-hostname'])
+    current_dns_name_safe = current_dns_name.split('.')[0].replace('.','-')
+	vpc_id = str(instance_metadata['network']['interfaces']['macs'].values()[0]['vpc-id'])
+	region = str(instance_metadata['placement']['availability-zone'][:-1])
 	return {"private_ip_address": current_ip,
 			"private_dns_name": current_dns_name,
+			"private_dns_name_safe": current_dns_name_safe,
 			"vpc_id": vpc_id,
 			"region": region
 		}
