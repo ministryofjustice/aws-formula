@@ -1,12 +1,12 @@
-===============================
+=====================
 AWS Saltstack formula
-===============================
+=====================
 
 
 Features
 --------
 
-* Creates pillar details to summarise useful information on the current instance and vpc.
+* Creates grain details to summarise useful information on the current instance and vpc.
 
 
 .. code-block::
