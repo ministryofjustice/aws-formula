@@ -6,7 +6,7 @@ AWS Saltstack formula
 Features
 --------
 
-* Creates grain details to summarise useful information on the current instance and vpc.
+* Creates grain details to summarise useful information on the current instance, vpc and elb.
 
 
 .. code-block::
@@ -19,3 +19,14 @@ Features
         <ip-address>: 
             private_dns_name: <private_dns_name>
             private_dns_name_safe: <private_dns_name_safe>
+
+  lbs:                      # A dictionary of {lb_name1:{attrs..}, {lb_name2:{attrs..}}
+    <load-balancer-name>:   # A load balancer name that shares the same vpc_id as this instance
+                            # and has this instance's instance_id in its "instances" list.
+      dns_name:             # The dns name of the load balancer as taken from elb            
+      name:                 # The load balancer resource name (short). This is the same
+                            # as the <load-balancer-name> key name.
+      scheme:               # The type of load balancer eg. internet-facing
+      security_groups:      # A list of the load balancer's security groups 
+      vpc_id:               # The vpc_id (also used to filter this instance's load balancers)
+ 
