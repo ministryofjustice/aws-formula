@@ -1,3 +1,7 @@
+## Version 0.4.0
+
+* Adds elb grains to be used in zero downtime deployment
+
 ## Version 0.3.0
 
 * Migrate back to using grain data
