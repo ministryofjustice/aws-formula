@@ -1,5 +1,3 @@
-dependencies:
-- 
+formula: ministryofjustice/aws-formula
 
-entry:
- - aws
+dependencies: []
