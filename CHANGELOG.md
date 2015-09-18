@@ -1,3 +1,7 @@
+## UNRELEASED
+
+* Add custom grains containing the redis elasticsearch endpoints
+
 ## Version 0.4.0
 
 * Adds elb grains to be used in zero downtime deployment
