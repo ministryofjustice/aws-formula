@@ -6,7 +6,9 @@ AWS Saltstack formula
 Features
 --------
 
-* Creates grain details to summarise useful information on the current instance, vpc and elb.
+
+Local EC2 Data
+##############
 
 
 .. code-block::
@@ -29,4 +31,23 @@ Features
       scheme:               # The type of load balancer eg. internet-facing
       security_groups:      # A list of the load balancer's security groups 
       vpc_id:               # The vpc_id (also used to filter this instance's load balancers)
- 
+
+
+Elasticsearch Endpoints
+#######################
+
+Sets grains for elasticache endpoints for a redis type, consisting of a primary (read-write) endpoint,
+and a list of read-only endpoints. These endpoints will only be collected if there is already a grain
+ElasticacheReplicationGroupName containing the replication group name.
+
+.. code::
+
+   'elasticache':  {
+     'primary_endpoint': {'address': <address>, 'port': <port>},
+     'default_endpoint': {'address': <address>, 'port': <port>},
+     'read_endpoints': [
+       {'address': <address>, 'port': <port>},
+       {'address': <address>, 'port': <port>},
+       {'address': <address>, 'port': <port>}
+     ]
+   }
