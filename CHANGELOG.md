@@ -1,5 +1,8 @@
 ## UNRELEASED
 
+## Version 0.6.0
+
+* Add python/grains script that will return True if instance is first in ASG group
 ## Version 0.5.0
 
 * Add custom grains containing the redis elasticsearch endpoints
