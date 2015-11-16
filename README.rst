@@ -33,13 +33,12 @@ Local EC2 Data
       vpc_id:               # The vpc_id (also used to filter this instance's load balancers)
 
 
-Run stuff once ASG group
-########################
+First instance in ASG group
+###########################
 
 When asg.py runs on a node, it returns either True or False based on
-whether the instance is the first instance of the ASG group.  When run
-as a salt call or 0/1 as a standard return code when ran as a python
-script.
+whether the instance is the first instance of the ASG group.  It returns
+True/False when ran as salt call or 0/1 when run as python script.
 
 The premise of asg.py is to provide a mechanism to define things that
 have to run once per ASG group. Example:
