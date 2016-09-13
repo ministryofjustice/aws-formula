@@ -1,0 +1,6 @@
+{% set aws = salt['grains.filter_by']({
+    'Default': {
+    	'eips': []
+    }
+}, grain='osfinger', merge=salt['pillar.get']('aws',{}), default='Default') %}
+
