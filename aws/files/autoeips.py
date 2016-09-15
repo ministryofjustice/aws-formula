@@ -5,11 +5,13 @@ from botocore.vendored.requests.packages.urllib3.util.retry import Retry
 import boto.ec2
 import boto.utils
 import logging
+import sys
 
 # Set up the logging
 logging.basicConfig(level=logging.{{aws.log_level}})
 logger = logging.getLogger("aws:autoeips")
 logging.getLogger("requests").setLevel(logging.WARNING)
+logging.getLogger('boto').setLevel(logging.CRITICAL)
 
 
 class AutoEIP(object):
@@ -29,11 +31,10 @@ class AutoEIP(object):
                   ['availability-zone'][:-1]
                   )
 
-        try:
-            self.ec2_connection = boto.ec2.connect_to_region(region)
-        except Exception as e:
-            # This prints a user-friendly error with stacktrace
-            logger.critical("Error getting EC2 conection: {}".format(e))
+        self.ec2_connection = boto.ec2.connect_to_region(region)
+        if self.ec2_connection is None:
+            logger.critical("Critical error getting EC2 conection...exiting")
+            self.safe_exit(1)
 
     def update_association(self, force=False):
         instance_associations = self.get_instance_association()
@@ -55,11 +56,12 @@ class AutoEIP(object):
         """
         Prints a mapping of private ip addresses to private dns names
         """
-        try:
-            return boto.utils.get_instance_metadata(timeout=5, num_retries=2)
-        except Exception as e:
-            logger.critical("Error getting VPC ips: {}".format(e))
-            self.safe_exit(exit_code=1)
+        instance_metadata = boto.utils.get_instance_metadata(timeout=5,
+                                                             num_retries=2)
+        if instance_metadata is None:
+            logger.critical("Critical error getting instance metadata, "
+                            "exiting")
+            self.safe_exit(1)
 
     def associate_eip(self, eips, retries=3):
         if not self.instance_id:
@@ -67,11 +69,9 @@ class AutoEIP(object):
             return False
         for retry in range(retries):
             for eip in eips:
-                logger.info("Associating instance: {} with eip: {} Retry {}/{}"
+                logger.info("Associating instance: {} with eip: {}..."
                             .format(self.instance_id,
-                                    eip.allocation_id,
-                                    retry,
-                                    retries)
+                                    eip.allocation_id)
                             )
 
                 success = eip.associate(
@@ -101,9 +101,9 @@ class AutoEIP(object):
 
             return unassociated_eips
 
-        except Exception as e:
+        except EC2ResponseError as e:
             # This prints a user-friendly error with stacktrace
-            logger.critical("Error getting EIPS: {}".format(e))
+            logger.critical("Error getting EIPS: {}".format(e.message))
             self.safe_exit(exit_code=1)
 
     def safe_exit(self, exit_code):
