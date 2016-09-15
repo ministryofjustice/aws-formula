@@ -1,7 +1,7 @@
 {% set aws = salt['grains.filter_by']({
     'Default': {
     	'eips': [],
-    	'auto_eip_log' = '/var/log/autoeips.log',
+    	'auto_eip_log': '/var/log/autoeips.log',
     	'log_level': 'INFO'
     }
 }, grain='osfinger', merge=salt['pillar.get']('aws',{}), default='Default') %}
