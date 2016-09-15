@@ -1,4 +1,3 @@
-from botocore.vendored.requests.packages.urllib3.util.retry import Retry
 {% from "aws/map.jinja" import aws with context %}
 #!/usr/bin/env python
 
