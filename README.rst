@@ -82,3 +82,25 @@ ElasticacheReplicationGroupName containing the replication group name.
        {'address': <address>, 'port': <port>}
      ]
    }
+   
+Auto EIP's
+##########
+
+By specifying a list of elastic ips in the pillar data and running the state `aws.autoeips`,
+instances can be setup to automatically poll for available EIP's in the specified list, and,
+if they do not have an EIP attached, associate with an available one. This can prove useful 
+when there is a group of instances that need to be whitelisted in a firewall by IP, providing
+a more resilient and automated solution than assigning EIP's manually.
+
+.. code::
+
+	aws:
+		# A list of eips to attempt to associate with (required) 
+		eips:
+			- 1.2.3.4
+			- 5.6.7.8
+		# File path to autoeip log (optional)
+		auto_eip_log: /var/log/autoeips.log
+    # Level of logging output (optional)
+    log_level': 'INFO'
+			
