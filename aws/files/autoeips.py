@@ -3,6 +3,7 @@
 
 import boto.ec2
 import boto.utils
+from boto.exception import EC2ResponseError
 import logging
 import sys
 
