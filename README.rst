@@ -103,4 +103,26 @@ a more resilient and automated solution than assigning EIP's manually.
 		auto_eip_log: /var/log/autoeips.log
     # Level of logging output (optional)
     log_level': 'INFO'
+    # Enable or disable the use of standby mode to add and remove 
+    # instances automatically dependent on whether thay have 
+    # acquired an EIP or not
+    eip_enable_standby_mode: True
+
+
+Note if the standby mode function is enabled, this requires an additional set of IAM permissions.
+The following EC2 permissions are required.
+
+.. code::
+
+	"ec2:AllocateAddress",
+  "ec2:AssociateAddress",
+  "ec2:DescribeAddresses",
+  "ec2:DisassociateAddress"
+
+The autoscaling permissions are required if the standby functionality is enabled.
+
+.. code::
+
+	"autoscaling:EnterStandby",
+	"autoscaling:ExitStandby"
 			
