@@ -1,4 +1,10 @@
 {% from "aws/map.jinja" import aws with context %}
+autoeips_cron:
+  pkg.installed:
+    - name: cron
+  service.running:
+    - name: cron
+
 autoeips.py:
   file.managed:
     - name: /usr/local/bin/autoeips.py
