@@ -17,6 +17,7 @@ class AutoEIP(object):
     filter_addresses = {{aws.eips}}
     ec2_connection = None
     instance_metadata = None
+    instance_id = None
 
     def __init__(self):
         self.instance_metadata = self.get_instance_metadata()
@@ -47,9 +48,8 @@ class AutoEIP(object):
                 instance_associations[0]))
 
     def get_instance_association(self):
-        instance_id = self.instance_metadata.get('instance-id', None)
         return self.ec2_connection.get_all_addresses(
-            filters={'instance-id': instance_id})
+            filters={'instance-id': self.instance_id})
 
     def get_instance_metadata(self):
         """
@@ -61,11 +61,9 @@ class AutoEIP(object):
             logger.critical("Critical error getting instance metadata, "
                             "exiting")
             self.safe_exit(1)
+        return instance_metadata
 
     def associate_eip(self, eips, retries=3):
-        if not self.instance_id:
-            logger.critical("Error getting instance_id")
-            return False
         for retry in range(retries):
             for eip in eips:
                 logger.info("Associating instance: {} with eip: {}..."
