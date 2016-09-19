@@ -138,7 +138,7 @@ class AutoEIP(object):
         # Disallow unrestricted association attempts,
         # filter addresses must be provided to prevent
         # over-greedy attempts on capturing EIP's
-        if (self.filter_addresses < 1):
+        if len(self.filter_addresses) < 1:
             logger.critical("No eip addresses specified, aborting...")
             self.safe_exit(1)
         try:
