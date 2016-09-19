@@ -10,6 +10,7 @@ autoeips.py:
 
 boto3:
   pkg.installed
+    - user: root
 
 cron_autoeips:
   cron.present:
