@@ -114,10 +114,8 @@ The following EC2 permissions are required.
 
 .. code::
 
-	"ec2:AllocateAddress",
   "ec2:AssociateAddress",
   "ec2:DescribeAddresses",
-  "ec2:DisassociateAddress"
 
 The autoscaling permissions are required if the standby functionality is enabled.
 
@@ -125,4 +123,4 @@ The autoscaling permissions are required if the standby functionality is enabled
 
 	"autoscaling:EnterStandby",
 	"autoscaling:ExitStandby"
-			
+
