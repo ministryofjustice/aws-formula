@@ -15,7 +15,7 @@ autoeips.py:
     - template: jinja
 
 boto3:
-  pkg.installed
+  pip.installed:
     - user: root
 
 cron_autoeips:
