@@ -1,3 +1,9 @@
+## Version 0.7.0
+
+Features:
+* Add EIP associaton script
+* Allow enabling standby mode on instances without EIPs
+
 ## Version 0.6.0
 
 * Add python/grains script that will return True if instance is first in ASG
