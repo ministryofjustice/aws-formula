@@ -2,7 +2,8 @@
     'Default': {
     	'eips': [],
     	'auto_eip_log': '/var/log/autoeips.log',
-    	'log_level': 'INFO'
+    	'log_level': 'INFO',
+    	'eip_enable_standby_mode': 'True'
     }
 }, grain='osfinger', merge=salt['pillar.get']('aws',{}), default='Default') %}
 

@@ -14,6 +14,10 @@ autoeips.py:
     - mode: 755
     - template: jinja
 
+boto3:
+  pkg.installed
+    - user: root
+
 cron_autoeips:
   cron.present:
     - name: python /usr/local/bin/autoeips.py >> {{ aws.auto_eip_log }}
