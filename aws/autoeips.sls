@@ -20,6 +20,6 @@ boto3:
 
 cron_autoeips:
   cron.present:
-    - name: python /usr/local/bin/autoeips.py >> {{ aws.auto_eip_log }}
+    - name: python /usr/local/bin/autoeips.py >> {{ aws.auto_eip_log }} 2>&1
     - user: root
     - minute: "*/1"

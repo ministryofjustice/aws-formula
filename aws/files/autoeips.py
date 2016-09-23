@@ -10,7 +10,8 @@ import logging
 import sys
 
 # Set up the logging
-logging.basicConfig(level=logging.{{aws.log_level}})
+logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
+                    level=logging.{{aws.log_level}})
 logger = logging.getLogger("aws:autoeips")
 logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger('boto').setLevel(logging.CRITICAL)
