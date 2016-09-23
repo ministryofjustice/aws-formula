@@ -1,3 +1,8 @@
+## v0.7.2
+
+Fixes:
+* Fixup autoip logging
+
 ## Version 0.7.1
 
 Fixes:
