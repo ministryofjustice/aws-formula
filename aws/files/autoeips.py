@@ -10,7 +10,12 @@ import logging
 import sys
 
 # Set up the logging
-logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
+{% if aws.log_format == 'json' %}
+logging_format_str = '{"time": "%(asctime)s","name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
+{% else %}
+logging_format_str = '%(asctime)s %(name)s: %(levelname)s: %(message)s'
+{% endif %}
+logging.basicConfig(format=logging_format_str,
                     level=logging.{{aws.log_level}})
 logger = logging.getLogger("aws:autoeips")
 logging.getLogger("requests").setLevel(logging.WARNING)
