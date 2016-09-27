@@ -78,8 +78,8 @@ class AutoEIP(object):
             filtered_eips = self.get_unassociated_eips()
             success = self.associate_eip(filtered_eips)
             if not success:
-                self.logger("There was a problem associating instance {} "
-                            "with an EIP".format(self.instance_id))
+                self.logger.critical("There was a problem associating instance {} "
+                                     "with an EIP".format(self.instance_id))
         else:
             self.logger.debug("Already associated with EIP: {}".format(
                 instance_associations[0]))
