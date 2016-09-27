@@ -1,3 +1,10 @@
+## v0.8.2
+
+Fixes:
+* Fix broken logic on no available eips
+* fix logger call typo
+* Add critical logging
+
 ## v0.8.1
 
 Fixes:
