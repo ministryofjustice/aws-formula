@@ -1,3 +1,12 @@
+## v0.8.0
+
+Features:
+* Add error level number to logging
+* Allow script to accept args
+Fixes:
+* Cleanup crontab
+* Fix early exit on EIP association
+
 ## v0.7.2
 
 Fixes:
