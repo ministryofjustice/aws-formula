@@ -18,6 +18,12 @@ boto3:
   pip.installed:
     - user: root
 
+cron_cleanup:
+  cmd.run:
+    - name: crontab -l | grep -v 'autoeips.py'  | crontab -
+    - require_in:
+      - state: cron_autoeips
+
 cron_autoeips:
   cron.present:
     - name: python /usr/local/bin/autoeips.py >> {{ aws.auto_eip_log }} 2>&1
