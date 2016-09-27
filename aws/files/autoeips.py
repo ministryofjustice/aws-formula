@@ -121,8 +121,10 @@ class AutoEIP(object):
 
                 success = eip.associate(
                     instance_id=self.instance_id, allow_reassociation=False)
-                self.update_standby_mode(False)
-                return success
+                # If the association was successful, update the standby mode and exit
+                if success:
+                    self.update_standby_mode(False)
+                    return success
         logger.warning("Failed to associate with any EIP's")
         self.update_standby_mode(True)
         return False
