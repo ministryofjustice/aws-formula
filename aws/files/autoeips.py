@@ -1,37 +1,45 @@
-{% from "aws/map.jinja" import aws with context %}
 #!/usr/bin/env python
-
+import argparse
 import boto.ec2.autoscale
 import boto.ec2
 import boto.utils
 from boto.exception import EC2ResponseError
 import boto3
+import json
 import logging
 import sys
-
-# Set up the logging
-logging.basicConfig(format='%(asctime)s %(levelname)s: %(message)s',
-                    level=logging.{{aws.log_level}})
-logger = logging.getLogger("aws:autoeips")
-logging.getLogger("requests").setLevel(logging.WARNING)
-logging.getLogger('boto').setLevel(logging.CRITICAL)
 
 
 class AutoEIP(object):
     """
     Class to configure and control the automatic assigning of EIP's to instances.
     """
-    filter_addresses = {{aws.eips}}
+    filter_addresses = None
     ec2_connection = None
     asg_connection = None
     instance_metadata = None
     instance_id = None
-    enable_standby_mode = {{aws.eip_enable_standby_mode}}
+    enable_standby_mode = None
+    force = False
 
-    def __init__(self):
+    def __init__(self,
+                 filter_addresses,
+                 enable_standby_mode=True,
+                 log_level='INFO',
+                 log_format='json',
+                 log_file=None,
+                 force=False):
         """
         Default constructor.
         """
+        self.setup_logging(log_level=log_level,
+                           log_format=log_format,
+                           log_file=log_file)
+
+        self.filter_addresses = filter_addresses
+        self.enable_standby_mode = enable_standby_mode
+        self.force = force
+
         self.instance_metadata = self.get_instance_metadata()
         self.instance_id = self.instance_metadata.get('instance-id')
         # Collect details about this instance
@@ -50,10 +58,10 @@ class AutoEIP(object):
             self.asg_connection = boto.ec2.autoscale.connect_to_region(region)
 
         if self.ec2_connection is None:
-            logger.critical("Critical error getting EC2 conection...exiting")
+            self.logger.critical("Critical error getting EC2 conection...exiting")
             self.safe_exit(1)
 
-    def update_association(self, force=False):
+    def update_association(self):
         """
         Check on the status of the EIP association for this instance and carry out
         the actions to ensure that the instance has one or is in the correct state
@@ -64,13 +72,13 @@ class AutoEIP(object):
                  False to only associate an EIP if it doesnt have one.
         """
         instance_associations = self.get_instance_association()
-        if len(instance_associations) < 1 or force:
-            logger.info("Associating with any available eips in list {}"
+        if len(instance_associations) < 1 or self.force:
+            self.logger.info("Associating with any available eips in list {}"
                         .format(self.filter_addresses))
             filtered_eips = self.get_unassociated_eips()
             self.associate_eip(filtered_eips)
         else:
-            logger.debug("Already associated with EIP: {}".format(
+            self.logger.debug("Already associated with EIP: {}".format(
                 instance_associations[0]))
 
     def get_instance_association(self):
@@ -94,7 +102,7 @@ class AutoEIP(object):
         instance_metadata = boto.utils.get_instance_metadata(timeout=5,
                                                              num_retries=2)
         if instance_metadata is None:
-            logger.critical("Critical error getting instance metadata, "
+            self.logger.critical("Critical error getting instance metadata, "
                             "exiting")
             self.safe_exit(1)
         return instance_metadata
@@ -114,7 +122,7 @@ class AutoEIP(object):
         """
         for retry in range(retries):
             for eip in eips:
-                logger.info("Associating instance: {} with eip: {}..."
+                self.logger.info("Associating instance: {} with eip: {}..."
                             .format(self.instance_id,
                                     eip.allocation_id)
                             )
@@ -142,7 +150,7 @@ class AutoEIP(object):
         # filter addresses must be provided to prevent
         # over-greedy attempts on capturing EIP's
         if len(self.filter_addresses) < 1:
-            logger.critical("No eip addresses specified, aborting...")
+            self.logger.critical("No eip addresses specified, aborting...")
             self.safe_exit(1)
         try:
             eips = self.ec2_connection.get_all_addresses(
@@ -151,8 +159,8 @@ class AutoEIP(object):
             unassociated_eips = \
                 [eip for eip in eips if eip.association_id is None]
 
-            logger.info("Found {} eips: {}".format(len(eips), eips))
-            logger.info("Found {} unassociated eips: {}"
+            self.logger.info("Found {} eips: {}".format(len(eips), eips))
+            self.logger.info("Found {} unassociated eips: {}"
                         .format(len(unassociated_eips),
                                 unassociated_eips)
                         )
@@ -161,7 +169,7 @@ class AutoEIP(object):
 
         except EC2ResponseError as e:
             # This prints a user-friendly error with stacktrace
-            logger.critical("Error getting EIPS: {}".format(e.message))
+            self.logger.critical("Error getting EIPS: {}".format(e.message))
             # If we're not associated already, we need to go into standby
             if len(self.get_instance_association()) < 1:
                 self.update_standby_mode(True)
@@ -185,7 +193,7 @@ class AutoEIP(object):
         """
         # Dont't do anything if this mode is not enabled
         if not self.enable_standby_mode:
-            logger.warning("Standby mode is not enabled, skipping")
+            self.logger.warning("Standby mode is not enabled, skipping")
             return False
         autoscaling_groups =  self.asg_connection.get_all_autoscaling_instances(
             instance_ids=[self.instance_id],
@@ -193,11 +201,11 @@ class AutoEIP(object):
             next_token=None)
 
         if len(autoscaling_groups) <1:
-            logger.critical("Cannot find autoscaling group for instance {}, aborting"
+            self.logger.critical("Cannot find autoscaling group for instance {}, aborting"
                             .format(self.instance_id))
             self.safe_exit(1)
         if len(autoscaling_groups) >1:
-            logger.critical("Found multiple autoscaling groups for instance {}, aborting"
+            self.logger.critical("Found multiple autoscaling groups for instance {}, aborting"
                             .format(self.instance_id))
             self.safe_exit(1)
         
@@ -209,17 +217,17 @@ class AutoEIP(object):
 
         if enable_standby:
             if instance_lifecycle_state == 'InService':
-                logger.warn("Enabling standby mode on instance {}, "
+                self.logger.warn("Enabling standby mode on instance {}, "
                             "this instance will receive no traffic.".format(self.instance_id))
                 response = asg_client.enter_standby(
                     InstanceIds=[self.instance_id],
                     AutoScalingGroupName=autoscaling_group_name,
                     ShouldDecrementDesiredCapacity=True
                 )
-                logger.debug(response)
+                self.logger.debug(response)
                 return True
             else:
-                logger.warn("Not enabling standby mode on instance {}, "
+                self.logger.warn("Not enabling standby mode on instance {}, "
                             "instance state {} is not InService"
                             .format(self.instance_id,
                                     instance_lifecycle_state)
@@ -227,22 +235,22 @@ class AutoEIP(object):
                 return False
         else:
             if instance_lifecycle_state == 'Standby':
-                logger.warn("Disabling standby mode on instance {}, "
+                self.logger.warn("Disabling standby mode on instance {}, "
                             "this instance will now serve traffic.".format(self.instance_id))
                 # Connect to ASG through boto3 to use its enter_standby function
                 response = asg_client.exit_standby(
                     InstanceIds=[self.instance_id],
                     AutoScalingGroupName=autoscaling_group_name
                 )
-                logger.debug(response)
+                self.logger.debug(response)
                 return True
             elif instance_lifecycle_state == 'InService':
-                logger.info("Not disabling standby mode on instance {}, "
+                self.logger.info("Not disabling standby mode on instance {}, "
                             "instance state is already InService"
                             )
                 return False
             else:
-                logger.warn("Not disabling standby mode on instance {}, "
+                self.logger.warn("Not disabling standby mode on instance {}, "
                             "instance state {} is not Standby"
                             .format(self.instance_id,
                                     instance_lifecycle_state)
@@ -260,6 +268,81 @@ class AutoEIP(object):
         """
         sys.exit(exit_code)
 
+    def setup_logging(self,
+                      log_level='INFO',
+                      log_format='json',
+                      log_file=None):
+        """
+        Setup the logging
+        """
+        if log_format == 'json':
+            logging_format_str = '{"timestamp": "%(asctime)s","name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
+        else:
+            logging_format_str = '%(asctime)s %(name)s: %(levelname)s: %(message)s'
+
+        logging.basicConfig(
+            format=logging_format_str,
+            filename=log_file,
+            level=log_level)
+        # Set up the logging
+        logging.basicConfig(format=logging_format_str,
+                            level=logging.getLevelName(log_level))
+        self.logger = logging.getLogger("aws:autoeips")
+        logging.getLogger("requests").setLevel(logging.WARNING)
+        logging.getLogger('boto').setLevel(logging.CRITICAL)
+
+
 if __name__ == '__main__':
-    autoeip = AutoEIP()
+    parser = argparse.ArgumentParser(
+        description=('Associate instances with an EIP from a supplied list')
+    )
+    parser.add_argument('--eips',
+                        dest='eips',
+                        type=str,
+                        help='JSON string list of EIPs to associate with',
+                        required=True
+                        )
+    parser.add_argument('--enable-standby-mode',
+                        dest='enable_standby_mode',
+                        help='Enable automatically putting instances in and out of standby',
+                        action='store_true'
+                        )
+    parser.add_argument('--log-level',
+                        dest='log_level',
+                        help=('Set the logging level, DEBUG/INFO/WARNING/ERROR/CRITICAL'),
+                        default='INFO'
+                        )
+    parser.add_argument('--log-file',
+                        dest='log_file',
+                        help=('File to log to.'),
+                        default=None
+                        )
+    parser.add_argument('--log-format',
+                        dest='log_format',
+                        help=('Logging format, json. default it simple text'),
+                        default='json'
+                        )
+    parser.add_argument('--force',
+                        dest='force',
+                        help=('Force association of EIP addresses'),
+                        action='store_true'
+                        )
+    args = parser.parse_args()
+    #  Load EIP list from string
+    try:
+        eips_list = json.loads(args.eips)
+    except ValueError as e:
+        print("Error loading eip list, {}: {}"
+              .format(e.message,
+                      args.eips))
+        sys.exit(1)
+    autoeip = AutoEIP(filter_addresses=eips_list,
+                      enable_standby_mode=args.enable_standby_mode,
+                      log_level=args.log_level,
+                      log_format=args.log_format,
+                      log_file=args.log_file,
+                      force=args.force
+                      )
+    
     autoeip.update_association()
+    sys.exit(0)

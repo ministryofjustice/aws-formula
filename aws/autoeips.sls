@@ -26,6 +26,12 @@ cron_cleanup:
 
 cron_autoeips:
   cron.present:
-    - name: python /usr/local/bin/autoeips.py >> {{ aws.auto_eip_log }} 2>&1
+    - name: |
+        python /usr/local/bin/autoeips.py
+         --eips '{{aws.eips | json()}}'
+         --log-level {{ aws.log_level }}
+         --log-format {{ aws.log_format }}
+         --log-file {{ aws.log_file }}
+         {% if aws.eip_enable_standby_mode %}--enable-standby-mode{% endif %}
     - user: root
     - minute: "*/1"
