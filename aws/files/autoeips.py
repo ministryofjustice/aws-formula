@@ -276,7 +276,7 @@ class AutoEIP(object):
         Setup the logging
         """
         if log_format == 'json':
-            logging_format_str = '{"timestamp": "%(asctime)s","name": "%(name)s", "level": "%(levelname)s", "message": "%(message)s"}'
+            logging_format_str = '{"timestamp": "%(asctime)s","name": "%(name)s", "level": "%(levelname)s", level_no: "%(levelno)s", "message": "%(message)s"}'
         else:
             logging_format_str = '%(asctime)s %(name)s: %(levelname)s: %(message)s'
 
