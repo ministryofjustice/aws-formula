@@ -76,7 +76,10 @@ class AutoEIP(object):
             self.logger.info("Associating with any available eips in list {}"
                         .format(self.filter_addresses))
             filtered_eips = self.get_unassociated_eips()
-            self.associate_eip(filtered_eips)
+            success = self.associate_eip(filtered_eips)
+            if not success:
+                self.logger("There was a problem associating instance {} "
+                            "with an EIP".format(self.instance_id))
         else:
             self.logger.debug("Already associated with EIP: {}".format(
                 instance_associations[0]))
@@ -120,6 +123,10 @@ class AutoEIP(object):
         Return:
             success(bool): True if association was successful, False otherwise.
         """
+        if len(eips):
+            self.logger.critical("There are no free eips available")
+            return False
+        return False
         for retry in range(retries):
             for eip in eips:
                 self.logger.info("Associating instance: {} with eip: {}..."
