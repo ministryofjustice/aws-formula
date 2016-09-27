@@ -1,3 +1,8 @@
+## v0.8.1
+
+Fixes:
+* fix level_no logging key typo
+
 ## v0.8.0
 
 Features:
