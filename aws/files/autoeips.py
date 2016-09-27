@@ -123,10 +123,9 @@ class AutoEIP(object):
         Return:
             success(bool): True if association was successful, False otherwise.
         """
-        if len(eips):
+        if len(eips) < 1:
             self.logger.critical("There are no free eips available")
             return False
-        return False
         for retry in range(retries):
             for eip in eips:
                 self.logger.info("Associating instance: {} with eip: {}..."
