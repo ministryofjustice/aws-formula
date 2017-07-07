@@ -139,20 +139,23 @@ class AutoEIP(object):
                 self.logger.critical("There are no free eips available, "
                                      "waiting in standby until additional "
                                      "EIPS are made available")
+            self.update_standby_mode(True)
             return False
-        for retry in range(retries):
-            for eip in eips:
-                self.logger.info("Associating instance: {} with eip: {}..."
-                            .format(self.instance_id,
-                                    eip.allocation_id)
-                            )
-
-                success = eip.associate(
-                    instance_id=self.instance_id, allow_reassociation=False)
-                # If the association was successful, update the standby mode and exit
-                if success:
-                    self.update_standby_mode(False)
-                    return success
+        else:
+            for retry in range(retries):
+                for eip in eips:
+                    self.logger.info("Associating instance: {} with eip: {}..."
+                                .format(self.instance_id,
+                                        eip.allocation_id)
+                                )
+    
+                    success = eip.associate(
+                        instance_id=self.instance_id, allow_reassociation=False)
+                    # If the association was successful, update the standby mode and exit
+                    if success:
+                        self.update_standby_mode(False)
+                        return success
+        # We did not manage to associate any eips
         if not self.enable_failover_mode:
             logger.warning("Failed to associate with any EIP's")
         self.update_standby_mode(True)
