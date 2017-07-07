@@ -107,6 +107,11 @@ a more resilient and automated solution than assigning EIP's manually.
     # instances automatically dependent on whether thay have 
     # acquired an EIP or not
     eip_enable_standby_mode: True
+    # Enable or disable the use of failover mode to add and remove
+    # instances automatically dependent on whether thay have
+    # acquired an EIP or not. This is the same as stnadby mode but
+    # does not alert.
+    eip_enable_failover_mode: False
 
 
 Note if the standby mode function is enabled, this requires an additional set of IAM permissions.

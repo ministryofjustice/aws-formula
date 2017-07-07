@@ -20,11 +20,13 @@ class AutoEIP(object):
     instance_metadata = None
     instance_id = None
     enable_standby_mode = None
+    enable_failover_mode = None
     force = False
 
     def __init__(self,
                  filter_addresses,
                  enable_standby_mode=True,
+                 enable_standby_mode=False,
                  log_level='INFO',
                  log_format='json',
                  log_file=None,
@@ -38,6 +40,11 @@ class AutoEIP(object):
 
         self.filter_addresses = filter_addresses
         self.enable_standby_mode = enable_standby_mode
+        self.enable_failover_mode = enable_failover_mode
+        if self.enable_failover_mode and not self.enable_standby_mode:
+            self.logger.info("Failover mode required standby mode but "
+                             "it is not set, forcing it to be set.")
+
         self.force = force
 
         self.instance_metadata = self.get_instance_metadata()
@@ -124,7 +131,14 @@ class AutoEIP(object):
             success(bool): True if association was successful, False otherwise.
         """
         if len(eips) < 1:
-            self.logger.critical("There are no free eips available")
+            if self.enable_failover_mode:
+                self.logger.info("There are no free eips available, "
+                                 "waiting in standby for an instance to "
+                                 "failover.")
+            else:
+                self.logger.critical("There are no free eips available, "
+                                     "waiting in standby until additional "
+                                     "EIPS are made available")
             return False
         for retry in range(retries):
             for eip in eips:
@@ -139,7 +153,8 @@ class AutoEIP(object):
                 if success:
                     self.update_standby_mode(False)
                     return success
-        logger.warning("Failed to associate with any EIP's")
+        if not self.enable_failover_mode:
+            logger.warning("Failed to associate with any EIP's")
         self.update_standby_mode(True)
         return False
 
@@ -198,8 +213,8 @@ class AutoEIP(object):
             (bool): True if the state was changed, false if otherwise.
         """
         # Dont't do anything if this mode is not enabled
-        if not self.enable_standby_mode:
-            self.logger.warning("Standby mode is not enabled, skipping")
+        if not self.enable_standby_mode and not self.enable_failover_mode:
+            self.logger.warning("Standby/Failover mode is not enabled, skipping")
             return False
         autoscaling_groups =  self.asg_connection.get_all_autoscaling_instances(
             instance_ids=[self.instance_id],
@@ -310,8 +325,13 @@ if __name__ == '__main__':
                         )
     parser.add_argument('--enable-standby-mode',
                         dest='enable_standby_mode',
-                        help='Enable automatically putting instances in and out of standby',
+                        help='Enable automatically putting instances in and out of standby on elastic ip acquisition with alerting',
                         action='store_true'
+                        )
+    parser.add_argument('--enable-failover-mode',
+                        dest='enable_failover_mode',
+                        help='Enable automatically putting instances in and out of standby on elastic ip acquisition silently',
+                        action='store_false'
                         )
     parser.add_argument('--log-level',
                         dest='log_level',
@@ -344,6 +364,7 @@ if __name__ == '__main__':
         sys.exit(1)
     autoeip = AutoEIP(filter_addresses=eips_list,
                       enable_standby_mode=args.enable_standby_mode,
+                      enable_failover_mode=args.enable_failover_mode,
                       log_level=args.log_level,
                       log_format=args.log_format,
                       log_file=args.log_file,

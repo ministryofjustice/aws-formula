@@ -33,5 +33,6 @@ cron_autoeips:
          --log-format {{ aws.log_format }}
          --log-file {{ aws.log_file }}
          {% if aws.eip_enable_standby_mode %}--enable-standby-mode{% endif %}
+         {% if aws.eip_enable_failover_mode %}--enable-failover-mode{% endif %}
     - user: root
     - minute: "*/1"

@@ -4,7 +4,8 @@
     	'log_file': '/var/log/autoeips.log',
     	'log_level': 'INFO',
     	'log_format': 'json',
-    	'eip_enable_standby_mode': True
+    	'eip_enable_standby_mode': True,
+    	'eip_enable_failover_mode': False
     }
 }, grain='osfinger', merge=salt['pillar.get']('aws',{}), default='Default') %}
 
