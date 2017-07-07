@@ -1,3 +1,8 @@
+## v0.9.1
+
+Fixes:
+* Ensure standby is called when we dont get an eip
+
 ## v0.9.0
 
 Features
