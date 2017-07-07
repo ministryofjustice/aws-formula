@@ -1,3 +1,8 @@
+## v0.9.0
+
+Features
+* Add failover mode
+
 ## v0.8.2
 
 Fixes:
