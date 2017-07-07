@@ -26,7 +26,7 @@ class AutoEIP(object):
     def __init__(self,
                  filter_addresses,
                  enable_standby_mode=True,
-                 enable_standby_mode=False,
+                 enable_failover_mode=False,
                  log_level='INFO',
                  log_format='json',
                  log_file=None,
@@ -84,7 +84,7 @@ class AutoEIP(object):
                         .format(self.filter_addresses))
             filtered_eips = self.get_unassociated_eips()
             success = self.associate_eip(filtered_eips)
-            if not success:
+            if not success and not self.enable_failover_mode:
                 self.logger.critical("There was a problem associating instance {} "
                                      "with an EIP".format(self.instance_id))
         else:
@@ -331,7 +331,7 @@ if __name__ == '__main__':
     parser.add_argument('--enable-failover-mode',
                         dest='enable_failover_mode',
                         help='Enable automatically putting instances in and out of standby on elastic ip acquisition silently',
-                        action='store_false'
+                        action='store_true'
                         )
     parser.add_argument('--log-level',
                         dest='log_level',
