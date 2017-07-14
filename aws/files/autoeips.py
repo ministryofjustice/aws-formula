@@ -251,7 +251,7 @@ class AutoEIP(object):
                 self.logger.debug(response)
                 return True
             else:
-                self.logger.warn("Not enabling standby mode on instance {}, "
+                self.logger.info("Not enabling standby mode on instance {}, "
                             "instance state {} is not InService"
                             .format(self.instance_id,
                                     instance_lifecycle_state)
