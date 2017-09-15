@@ -129,3 +129,42 @@ The autoscaling permissions are required if the standby functionality is enabled
 	"autoscaling:EnterStandby",
 	"autoscaling:ExitStandby"
 
+AWSLog Agent
+############
+
+The aws.awslogs state sets up the awslogs agent on the instance. It configures
+a number of common log paths by default. See http://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/QuickStartEC2Instance.html
+
+Note, the instance role must have permissions to work with CloudWatch, 
+
+.. code:: json
+
+  {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogStreams"
+    ],
+      "Resource": [
+        "arn:aws:logs:*:*:*"
+    ]
+  }
+
+The following covers some of the pillar options available, in general the defaults
+should be enough in most cases.
+
+.. code::
+
+  aws:
+    awslogs:
+      # A dictionary of log group name to log path entries
+      # There are a number of common paths provided by default
+      log_files:
+        <log_group_name>: <log_file_path> 
+        <log_group_name>: <log_file_path> 
+      # The log group prefix override, this defaults to the stack name.
+      log_group_prefix: my-stack-name
+      # The grain to use as the stream id, defaults to instance id
+      log_stream_id_grain: aws_instance_id

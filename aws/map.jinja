@@ -1,11 +1,24 @@
 {% set aws = salt['grains.filter_by']({
     'Default': {
-    	'eips': [],
-    	'log_file': '/var/log/autoeips.log',
-    	'log_level': 'INFO',
-    	'log_format': 'json',
-    	'eip_enable_standby_mode': True,
-    	'eip_enable_failover_mode': False
+      'eips': [],
+      'log_file': '/var/log/autoeips.log',
+      'log_level': 'INFO',
+      'log_format': 'json',
+      'eip_enable_standby_mode': True,
+      'eip_enable_failover_mode': False,
+      'awslogs': {
+        'log_files': {
+          '/var/log/syslog': '/var/log/syslog',
+          '/var/log/kern.log': '/var/log/kern.log',
+          '/var/log/nginx': '/var/log/nginx/*.json',
+          '/var/log/upstart': '/var/log/upstart/*.log',
+          '/var/lib/docker/containers': '/var/lib/docker/containers/*/*.log',
+          '/var/log/cron.log': '/var/log/cron.log',
+          '/var/log/stunnel_scanner.log': '/var/log/stunnel_scanner.log'
+        },
+        'log_group_prefix': salt['grains.get']('aws:cloudformation:stack-name', delimiter='|'),
+        'log_stream_id_grain': 'aws_instance_id'
+      }
     }
 }, grain='osfinger', merge=salt['pillar.get']('aws',{}), default='Default') %}
 
