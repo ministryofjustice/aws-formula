@@ -1,3 +1,8 @@
+## 0.10.0
+
+Features:
+* Add AWSlogs agent state
+
 ## v0.9.1
 
 Fixes:
