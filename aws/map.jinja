@@ -18,6 +18,13 @@
         },
         'log_group_prefix': salt['grains.get']('aws:cloudformation:stack-name', delimiter='|'),
         'log_stream_id_grain': 'aws_instance_id'
+      },
+      'ssm': {
+        'endpoint': '',
+        's3_endpoint': '',
+        's3_region': '',
+        's3_logbucket': '',
+        's3_logkey': ''
       }
     }
 }, grain='osfinger', merge=salt['pillar.get']('aws',{}), default='Default') %}
