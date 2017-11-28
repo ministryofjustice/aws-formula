@@ -1,3 +1,7 @@
+## v1.0.0
+
+* First major release 
+
 ## 0.10.0
 
 Features:
